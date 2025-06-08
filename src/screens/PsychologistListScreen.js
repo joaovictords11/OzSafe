@@ -18,7 +18,7 @@ const PsychologistListScreen = () => {
     const fetchPsychologists = async () => {
       try {
         const response = await api.getAllPsychologists();
-        setPsychologists(response.data.filter((p) => p.disponivel)); // Mostra apenas os disponíveis
+        setPsychologists(response.data.filter((p) => p.disponivel));
       } catch (error) {
         console.error(error.response?.data || error.message);
         Alert.alert("Erro", "Não foi possível carregar a lista de psicólogos.");

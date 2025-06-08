@@ -1,15 +1,15 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
-import { jwtDecode } from "jwt-decode"; // Precisa instalar: npm install jwt-decode
+import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
 } from "react-native";
 import * as api from "../api/api";
 import { COLORS, FONTS } from "../styles/theme";
@@ -19,42 +19,66 @@ const ProfileScreen = () => {
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
     const loadUserData = async () => {
+      setLoading(true);
       try {
         const token = await AsyncStorage.getItem("userToken");
-        const decodedToken = jwtDecode(token);
-        const userId = decodedToken.userId; // Supondo que o ID está no payload do token como 'userId'
+        if (!token) {
+          throw new Error("Token não encontrado");
+        }
 
-        const response = await api.getUserById(userId);
-        setUser(response.data);
-        setNome(response.data.nome);
-        setTelefone(response.data.telefone);
+        const decodedToken = jwtDecode(token);
+        const userEmail = decodedToken.sub;
+
+        const response = await api.getAllUsers();
+        const allUsers = response.data;
+
+        const currentUser = allUsers.find((u) => u.email === userEmail);
+
+        if (currentUser) {
+          setUser(currentUser);
+          setNome(currentUser.nome);
+          setTelefone(currentUser.telefone);
+        } else {
+          throw new Error("Usuário do token não encontrado na base de dados.");
+        }
       } catch (error) {
-        console.error(error);
-        Alert.alert("Erro", "Não foi possível carregar seus dados.");
-        navigation.goBack();
+        console.error("Erro ao carregar dados do usuário:", error);
+        Alert.alert(
+          "Erro de Sessão",
+          "Não foi possível carregar seus dados. Por favor, faça login novamente."
+        );
+
+        await AsyncStorage.removeItem("userToken");
+        navigation.replace("Login");
       } finally {
         setLoading(false);
       }
     };
+
     loadUserData();
   }, []);
 
   const handleUpdate = async () => {
-    setLoading(true);
+    if (!nome || !telefone) {
+      Alert.alert("Erro", "Nome e telefone não podem estar vazios.");
+      return;
+    }
+    setIsUpdating(true);
     try {
       const updatedData = { ...user, nome, telefone };
       await api.updateUser(user.id, updatedData);
       Alert.alert("Sucesso", "Seus dados foram atualizados.");
-      setUser(updatedData); // Atualiza o estado local
+      setUser(updatedData);
     } catch (error) {
-      console.error(error.response?.data);
+      console.error(error.response?.data || error.message);
       Alert.alert("Erro", "Não foi possível atualizar seus dados.");
     } finally {
-      setLoading(false);
+      setIsUpdating(false);
     }
   };
 
@@ -68,7 +92,7 @@ const ProfileScreen = () => {
           text: "Excluir",
           style: "destructive",
           onPress: async () => {
-            setLoading(true);
+            setIsUpdating(true);
             try {
               await api.deleteUser(user.id);
               await AsyncStorage.removeItem("userToken");
@@ -80,7 +104,7 @@ const ProfileScreen = () => {
             } catch (error) {
               console.error(error.response?.data);
               Alert.alert("Erro", "Não foi possível excluir sua conta.");
-              setLoading(false);
+              setIsUpdating(false);
             }
           },
         },
@@ -88,18 +112,21 @@ const ProfileScreen = () => {
     );
   };
 
-  if (loading && !user) {
+  if (loading) {
     return (
       <ActivityIndicator
         size="large"
         color={COLORS.primary}
-        style={{ flex: 1 }}
+        style={{ flex: 1, justifyContent: "center" }}
       />
     );
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingBottom: 50 }}
+    >
       <Text style={styles.label}>Nome:</Text>
       <TextInput style={styles.input} value={nome} onChangeText={setNome} />
 
@@ -121,9 +148,9 @@ const ProfileScreen = () => {
       <TouchableOpacity
         style={styles.updateButton}
         onPress={handleUpdate}
-        disabled={loading}
+        disabled={isUpdating}
       >
-        {loading ? (
+        {isUpdating ? (
           <ActivityIndicator color={COLORS.white} />
         ) : (
           <Text style={styles.buttonText}>Atualizar Dados</Text>
@@ -133,11 +160,11 @@ const ProfileScreen = () => {
       <TouchableOpacity
         style={styles.deleteButton}
         onPress={handleDelete}
-        disabled={loading}
+        disabled={isUpdating}
       >
         <Text style={styles.buttonText}>Excluir Conta</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -153,7 +180,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.lightGray,
   },
-  disabledInput: { backgroundColor: "#f0f0f0" },
+  disabledInput: { backgroundColor: "#f0f0f0", color: "#a0a0a0" },
   updateButton: {
     width: "100%",
     height: 50,

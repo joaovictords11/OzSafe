@@ -27,12 +27,10 @@ const LoginScreen = () => {
     setLoading(true);
     try {
       const response = await api.login(email, senha);
-      const token = response.data.token; // Supondo que a API retorna { token: "..." }
+      const token = response.data.token;
 
       if (token) {
         await AsyncStorage.setItem("userToken", token);
-        // O ideal é buscar os dados do usuário aqui e salvá-los também
-        // ou passá-los para a próxima tela.
         navigation.replace("Home");
       } else {
         Alert.alert("Erro de Login", "Token não recebido.");

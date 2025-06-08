@@ -18,7 +18,7 @@ O aplicativo permite que usuários afetados por desastres se cadastrem de forma 
 
 ### Link para o Vídeo de Demonstração
 
-[INSERIR O LINK DO VÍDEO NO YOUTUBE AQUI]
+https://youtube.com/shorts/Smf1Szj5Fdw?feature=share
 
 ---
 

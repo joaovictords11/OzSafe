@@ -1,8 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
-// IMPORTANTE: Substitua 'SEU_IP_LOCAL' pelo IP da sua máquina!
-const API_URL = "http://SEU_IP_LOCAL:8080";
+const API_URL = "https://gs-java1-production.up.railway.app";
 
 const api = axios.create({
   baseURL: API_URL,

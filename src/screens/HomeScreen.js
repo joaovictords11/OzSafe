@@ -30,8 +30,6 @@ const HomeScreen = () => {
         <Text style={styles.menuButtonText}>Meu Perfil</Text>
       </TouchableOpacity>
 
-      {/* Adicionar mais opções de menu conforme necessário */}
-
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutButtonText}>Sair</Text>
       </TouchableOpacity>

@@ -15,8 +15,8 @@ const AppNavigator = () => {
       <Stack.Navigator
         initialRouteName="Login"
         screenOptions={{
-          headerStyle: { backgroundColor: "#3498db" }, // COLORS.primary
-          headerTintColor: "#ffffff", // COLORS.white
+          headerStyle: { backgroundColor: "#3498db" },
+          headerTintColor: "#ffffff",
           headerTitleStyle: { fontWeight: "bold" },
         }}
       >
